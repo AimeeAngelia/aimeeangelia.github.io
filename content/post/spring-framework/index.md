@@ -5,9 +5,16 @@ slug: spring-framework
 date: 2026-02-02 00:00:00+0000
 image: cover.png
 categories:
-    - Example Category
+  - Java
+  - Spring
 tags:
-    - Example Tag
+  - Spring Framework
+  - IoC
+  - DI
+  - Bean
+  - "@Autowired"
+  - "@Component"
+
 weight: 1       # You can add weight to some posts to override the default sorting (date descending)
 ---
 
