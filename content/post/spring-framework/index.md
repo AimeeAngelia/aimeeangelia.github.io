@@ -14,7 +14,16 @@ tags:
   - Bean
   - "@Autowired"
   - "@Component"
+links:
+  - title: Spring Framework
+    description: Spring is a powerful framework for building Java applications.
+    website: https://spring.io/
+    image: spring-framework.png
 
+  - title: Maven central repository
+    description: Maven Central Repository is a repository of build artifacts used by Apache Maven.
+    website: https://central.sonatype.com/
+    image: maven-central-repository.png
 weight: 1       # You can add weight to some posts to override the default sorting (date descending)
 ---
 
