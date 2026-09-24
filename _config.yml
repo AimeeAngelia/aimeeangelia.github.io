@@ -1,0 +1,114 @@
+# Hexo Configuration
+## Docs: https://hexo.io/docs/configuration.html
+## Source: https://github.com/hexojs/hexo/
+
+# Site
+title: "Marginalia"
+subtitle: "Written Between Poetry and Night"
+description: "Yzblanc 的手账博客：记录技术实践、生活片段与值得收藏的灵感。"
+keywords:
+  - Marginalia
+  - Yzblanc
+  - 个人博客
+  - 技术笔记
+  - 云计算
+  - Minecraft
+author: "Yzblanc"
+language: zh-CN
+timezone: "Asia/Shanghai"
+
+# URL
+url: https://marginalia.ueo.me/
+permalink: post/:title.html
+permalink_defaults:
+pretty_urls:
+  trailing_index: true
+  trailing_html: true
+
+# Directory
+source_dir: source
+public_dir: public
+tag_dir: tags
+archive_dir: archives
+category_dir: categories
+code_dir: downloads/code
+i18n_dir: :lang
+skip_render:
+
+# Writing
+new_post_name: :title.md
+default_layout: post
+titlecase: false
+external_link:
+  enable: true
+  field: site
+  exclude: ""
+filename_case: 0
+render_drafts: false
+post_asset_folder: true
+relative_link: false
+future: false
+syntax_highlighter: highlight.js
+highlight:
+  line_number: true
+  auto_detect: false
+  tab_replace: ""
+  wrap: true
+  hljs: false
+prismjs:
+  preprocess: true
+  line_number: true
+  tab_replace: ""
+
+# Markdown 图片相对路径（配合 post_asset_folder，支持 ![](图片.jpg) 引用文章资源文件夹）
+marked:
+  prependRoot: true
+  postAsset: true
+  lazyload: true
+
+# Home page setting
+index_generator:
+  path: ""
+  per_page: 10
+  order_by: -date
+
+# Category & Tag
+default_category: uncategorized
+category_map:
+tag_map:
+
+# Metadata elements
+meta_generator: true
+
+# Date / Time format
+date_format: YYYY-MM-DD
+time_format: HH:mm:ss
+updated_option: "date"
+
+# Pagination
+per_page: 10
+pagination_dir: page
+
+# Include / Exclude file(s)
+include:
+exclude:
+ignore:
+
+# Extensions
+theme: flatpaper
+
+# Deployment
+deploy:
+  type: ""
+
+# Feed (hexo-generator-feed) - https://github.com/hexojs/hexo-generator-feed
+feed:
+  enable: true
+  type: atom
+  path: atom.xml
+  limit: 20
+  content: true
+
+# Sitemap (hexo-generator-sitemap) - https://github.com/hexojs/hexo-generator-sitemap
+sitemap:
+  path: sitemap.xml
