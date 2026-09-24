@@ -1,12 +1,3 @@
-- class_name: 示例分组
-  class_desc: 演示友链卡片效果。
-  link_list:
-    - name: GitHub
-      link: https://github.com/
-      avatar: https://github.githubassets.com/favicons/favicon.svg
-      descr: 代码托管与协作平台。
-      rss: https://github.blog/feed/
-    - name: Hexo
-      link: https://hexo.io/
-      avatar: https://hexo.io/icon/favicon-32x32.png
-      descr: 快速、简洁且高效的博客框架。
+- class_name: 幕间来客
+  class_desc: 等待下一位知音入席。
+  link_list: []

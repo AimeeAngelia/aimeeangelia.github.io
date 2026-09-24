@@ -1,5 +1,5 @@
 ---
-title: Azure for Students 认证实录：流程、踩坑与区域限制
+title: 折腾两天，我终于通过了 Azure for Students 认证
 date: 2026-08-23 05:17:49
 updated: 2026-09-20 04:20:00
 cover: /images/azure-for-student/azure-student-cover.png

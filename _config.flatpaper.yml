@@ -44,7 +44,7 @@ nav:
           icon: gauge
 
 # Favicon：使用站点头像生成的轻量方形图标。
-favicon: /images/site-favicon.png
+favicon: /images/phrolova-avatar.png
 
 # 背景特效
 # 选项: default(默认纸纹) / grid(网格) / line(横线) / cross(十字星) / dotted(点阵)
@@ -91,7 +91,7 @@ footer:
 profile:
   role: 落笔为誓
   bio: 许过的诺言，一定会实现。
-  avatar: /images/Izumi Konata.jpg
+  avatar: /images/phrolova-avatar.png
   avatar_shape: square
   site_info:
     posts: /archives/
@@ -133,21 +133,21 @@ welcome:
   text: 别急着离开，这场演出还没有结束。
   cta_text: 与我合奏？你确定？
   cta_link: archives/
-  image: /images/d30b398a00af4dc36b73f7f3ab0c77de.png
+  image: /images/phrolova-welcome.png
 
 # 首页开屏大图。默认关闭，不影响已有站点；仅在首页第一页渲染。
 # 开启后默认复用 profile 的头像、简介、社交链接与 RSS，也可以在这里覆盖。
 home_hero:
   enable: true
   title: Marginalia
-  subtitle: Yzblanc
+  subtitle: 落笔为誓
   bio: 许过的诺言，一定会实现。
-  avatar: /images/Izumi Konata.jpg
+  avatar: /images/phrolova-avatar.png
   avatar_shape: square
   #
   # 背景图。留空时使用主题内置的手账纸张背景；设置后图片会铺满开屏。
   # 也可配置为数组，浏览器每次载入随机使用一张。
-  image: /images/fll-cover.jpg
+  image: /images/phrolova-concerto.jpg
   # image:
   #   - /images/hero-1.jpg
   #   - /images/hero-2.jpg
@@ -178,18 +178,18 @@ home_hero:
     enable: true
     draggable: true
     # 内置便签贴纸的文字。
-    note_text: Welcome to Marginalia
+    note_text: 演出尚未落幕
     # 自定义图片贴纸最多渲染 5 张；加上内置便签后，开屏最多 6 个 sticker。link 可选，不配置则只是可拖动装饰。
     items:
-      - image: /images/SPY_X_FAMILY_Anya_012.webp
-        alt: Anya
-        size: 120
-      - image: /images/wutheringwavespack_003.webp
-        alt: Wuthering Waves
-        size: 120
-      - image: /images/KusuriyaS2_012.webp
-        alt: Kusuriya
-        size: 120
+      - image: /images/hero-sticker-encore.svg
+        alt: Encore
+        size: 132
+      - image: /images/hero-sticker-lycoris.svg
+        alt: 彼岸花
+        size: 138
+      - image: /images/hero-sticker-soundwave.svg
+        alt: 霓虹声波
+        size: 126
       # - image: /images/LKK.png
       #   alt: LKK
       #   size: 480

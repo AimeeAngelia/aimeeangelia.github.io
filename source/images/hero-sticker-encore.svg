@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 190" role="img" aria-labelledby="title desc">
+  <title id="title">Encore 演出贴纸</title>
+  <desc id="desc">红粉渐变的现代演出贴纸，写有 Encore</desc>
+  <defs>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff4f87"/>
+      <stop offset="0.52" stop-color="#d84580"/>
+      <stop offset="1" stop-color="#7b3fa8"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#2a1535" flood-opacity=".3"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="M25 48 58 22l42 8 35-15 30 25 42 2 9 39-18 32 8 35-39 10-26 19-35-17-42 8-13-36-31-24 16-34Z" fill="#fff" stroke="#fff" stroke-width="12" stroke-linejoin="round"/>
+    <path d="M25 48 58 22l42 8 35-15 30 25 42 2 9 39-18 32 8 35-39 10-26 19-35-17-42 8-13-36-31-24 16-34Z" fill="url(#card)" stroke="#ffcfdf" stroke-width="3" stroke-linejoin="round"/>
+  </g>
+  <path d="m46 61 10 3-7 7m138-4 10-3-4 10M60 132l-9 5 10 4m119-8 10 5-11 4" fill="none" stroke="#fff1f7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="120" y="99" fill="#fff" font-family="Arial Black,Arial,sans-serif" font-size="37" font-weight="900" text-anchor="middle" letter-spacing="1">ENCORE!</text>
+  <text x="120" y="124" fill="#ffe1ee" font-family="Arial,sans-serif" font-size="13" font-weight="700" text-anchor="middle" letter-spacing="4">ONE MORE SONG</text>
+  <circle cx="59" cy="96" r="5" fill="#8be4df"/>
+  <circle cx="181" cy="97" r="5" fill="#ffd369"/>
+</svg>

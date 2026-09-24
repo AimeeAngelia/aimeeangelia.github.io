@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" role="img" aria-labelledby="title desc">
+  <title id="title">霓虹声波贴纸</title>
+  <desc id="desc">粉紫色霓虹声波与音符贴纸</desc>
+  <defs>
+    <linearGradient id="disc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#25223f"/>
+      <stop offset="1" stop-color="#5f315f"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7ce4df"/>
+      <stop offset="0.5" stop-color="#ff77a8"/>
+      <stop offset="1" stop-color="#d698ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="160%">
+      <feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#25122e" flood-opacity=".35"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <circle cx="110" cy="108" r="88" fill="#fff" stroke="#fff" stroke-width="12"/>
+    <circle cx="110" cy="108" r="86" fill="url(#disc)" stroke="#ffc6db" stroke-width="3"/>
+  </g>
+  <circle cx="110" cy="108" r="64" fill="none" stroke="#ffffff" stroke-opacity=".12" stroke-width="2"/>
+  <circle cx="110" cy="108" r="48" fill="none" stroke="#ffffff" stroke-opacity=".1" stroke-width="2"/>
+  <path d="M37 110h18l8-20 12 42 13-63 13 83 13-48 12 20 11-39 12 50 10-25h24" fill="none" stroke="url(#wave)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M145 50v29c0 8-7 14-16 14-7 0-12-4-12-10s6-11 14-11c3 0 5 0 7 1V46l32-8v31c0 8-7 14-16 14-7 0-12-4-12-10s6-11 14-11c3 0 5 0 7 1V46Z" fill="#fff" fill-opacity=".9"/>
+  <path d="m61 53 3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8Zm109 87 3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8Z" fill="#ffd36c"/>
+</svg>
