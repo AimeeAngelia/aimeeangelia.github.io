@@ -1,10 +1,10 @@
 ---
-title: 搭建一台好玩又好管的 Minecraft NeoForge 服务器
+title: 一台 Minecraft 小服是怎么搭起来的
 date: 2026-09-11 05:09:06
-updated: 2026-09-20 03:40:00
+updated: 2026-09-24 16:20:00
 cover: /images/minecraft-server/cover.png
 top_img: /images/minecraft-server/cover.png
-description: 用 NeoForge、MCSManager 和一组克制的模组，搭建一台适合朋友联机、方便长期维护的 Minecraft 服务器。
+description: 记录我的 Minecraft 26.2 NeoForge 小服：为什么用 MCSManager、模组怎么取舍，以及客户端和备份怎样处理。
 categories: [Minecraft]
 tags:
   - Minecraft
@@ -13,75 +13,95 @@ tags:
   - Mod
 ---
 
-开一台 Minecraft 服务器不难，难的是让它在加入模组以后依然稳定、好玩，而且过几个月再回来时仍然知道该怎么维护。
+这台服一开始只是想拿来和朋友玩。
 
-这次我用 **Minecraft 26.2 + NeoForge 26.2.0.71** 搭建了一台朋友联机服：服务端运行在 Ubuntu 上，由 MCSManager 管理；客户端使用 PCL2，并通过版本隔离保存独立的模组和配置。本文从零整理整个过程，也解释每一组模组为什么值得留下。
+真正搭起来才发现，让 Minecraft 跑起来并不费事；费事的是后面那些选择：模组放多少，客户端怎么统一，谁能动谁的箱子，服务器半夜卡了又该从哪里看。
+
+我最后没有做成大型整合包，而是留在“原版生存加一点方便”的范围里。地图、物品查询、墓碑、领地和性能优化都有，大型科技、魔法与世界生成先不碰。这样少一点新鲜感，但存档更容易活得久。
+
+这篇是这台小服的搭建记录，也留给以后忘记配置的自己。
 
 <!-- more -->
 
-{% note info 本文的目标 %}
-保留原版生存的节奏，只增强地图、物品查询、死亡保护、领地与性能。大型科技、魔法和世界生成模组暂时不加，这样存档更轻，升级也更容易。
-{% endnote %}
+## 现在的样子
 
-## 先设计，再开服
+服务端放在一台 Ubuntu 主机上，地址是 `192.168.1.239`，游戏文件位于：
 
-整套环境可以分成三层：
+```text
+/opt/mc-server/server
+```
+
+Minecraft 使用 26.2，Loader 是 NeoForge 26.2.0.71。进程交给 MCSManager 管理，平时不用一直开着 SSH 窗口。
+
+客户端则是 PCL2 中单独隔离出来的版本：
+
+```text
+D:\Program Files\PortableApps\PortableApps\PCL 正式版 2.13.1.1\.minecraft\versions\26.2-NeoForge_26.2.0.71
+```
+
+整套东西没有很复杂，大致就是：
 
 ```text
 PCL2 客户端
-  └─ Minecraft 26.2 + NeoForge 26.2.0.71 + 客户端模组
+  └─ Minecraft 26.2 + NeoForge + 客户端模组
                          │
-                         │  192.168.1.239:25565
                          ▼
 Minecraft 服务端
-  └─ /opt/mc-server/server + 服务端模组 + 世界存档
+  └─ /opt/mc-server/server
                          │
                          ▼
 MCSManager
-  └─ 启停、控制台、文件管理与计划任务
+  └─ 启停、控制台、文件和计划任务
 ```
 
-这里最重要的原则是**版本固定**。Minecraft、NeoForge 和模组都使用明确版本，不让客户端各自下载“最新版”。小服最常见的连接失败，往往不是网络问题，而是双方的 Loader 或 jar 文件并不一致。
+这里最值得提前定下来的不是内存，而是版本。Minecraft、NeoForge 和双端模组都固定版本，不让每个人随手下载一个“最新”。联机时报 `Mismatched mod list`，十次有九次不是玄学，就是双方的 jar 不一样。
 
-## 安装 NeoForge 服务端
+## 先让 NeoForge 自己跑起来
 
-### 准备 Java 与目录
+我在 `/opt/mc-server` 下分了三个目录：
 
-先在服务器上确认 Java：
+```text
+/opt/mc-server/
+├── backups/       # 备份
+├── client-mods/   # 发给玩家的客户端模组
+└── server/        # 正式服务端
+```
+
+先检查 Java：
 
 ```bash
 java -version
 ```
 
-这台服务器使用 OpenJDK 25。不同 Minecraft 版本需要的 Java 版本可能不同，安装前应以 [NeoForge 官方文档](https://docs.neoforged.net/user/docs/) 为准。
+这台机器现在用 OpenJDK 25。Minecraft 与 NeoForge 对 Java 的要求会变，不能看到“版本越高越好”就随便装，开服前最好再看一眼 [NeoForge 官方文档](https://docs.neoforged.net/user/docs/)。
 
-服务端目录规划如下：
-
-```text
-/opt/mc-server/
-├── backups/       # 备份
-├── client-mods/   # 准备分发给客户端的模组
-└── server/        # 服务端工作目录
-```
-
-进入工作目录，将 NeoForge installer 放进去：
+把 installer 放进 `server` 后执行：
 
 ```bash
 cd /opt/mc-server/server
 java -jar neoforge-26.2.0.71-installer.jar --installServer
 ```
 
-安装完成后会生成 `run.sh`、`libraries/` 和 `user_jvm_args.txt`。第一次运行还会生成 `eula.txt`，阅读并同意 [Minecraft EULA](https://www.minecraft.net/eula) 后，将它改为：
+安装完成会出现 `run.sh`、`libraries/` 和 `user_jvm_args.txt`。第一次启动还会生成 `eula.txt`，确认接受 [Minecraft EULA](https://www.minecraft.net/eula) 后改成：
 
 ```properties
 eula=true
 ```
 
-NeoForge 官方的完整安装步骤可以在 [Installing a NeoForge Server](https://docs.neoforged.net/user/docs/server/) 中找到。
+内存先从一个不夸张的数值开始：
 
-### 启动脚本与内存
+```text
+-Xms2G
+-Xmx4G
+```
 
-为了让 MCSManager 始终使用同一个入口，我在 `run.sh` 外包了一层 `start.sh`：
+这套模组、少量玩家，用 4 GiB 作为上限够我起步。Minecraft 卡顿不一定是内存不够，一路把 `-Xmx` 往上加，最后很可能只是换来更长的垃圾回收。
+
+NeoForge 的安装细节可以对照 [Installing a NeoForge Server](https://docs.neoforged.net/user/docs/server/)。我习惯先在命令行确认它能完整启动一次，再交给管理面板。这样面板启动失败时，至少知道问题在命令还是在游戏本身。
+
+## 然后交给 MCSManager
+
+为了让面板始终从正确目录启动，我在 `run.sh` 外面放了一个很薄的 `start.sh`：
 
 ```bash
 #!/usr/bin/env bash
@@ -90,49 +110,37 @@ export PATH="/usr/bin:$PATH"
 exec ./run.sh nogui "$@"
 ```
 
-然后赋予执行权限：
+给它执行权限：
 
 ```bash
 chmod +x /opt/mc-server/server/start.sh
 ```
 
-内存写在 `user_jvm_args.txt`：
+MCSManager 实例里实际需要填的东西不多：
 
-```text
--Xms2G
--Xmx4G
-```
-
-2 GiB 是启动时的堆大小，4 GiB 是上限。对于人数不多、以原版增强模组为主的服务器，这是一个合适的起点。内存并不是越多越好，真正卡顿时应该先看 TPS 和性能报告。
-
-## 用 MCSManager 接管服务器
-
-MCSManager 负责把游戏进程稳定地留在后台，并提供控制台和文件管理。创建实例时使用下面这组设置：
-
-| 设置 | 内容 |
+| 项目 | 设置 |
 |---|---|
-| 实例名称 | `Minecraft 26.2 NeoForge` |
 | 工作目录 | `/opt/mc-server/server` |
 | 启动命令 | `./start.sh` |
 | 停止命令 | `stop` |
-| 文件与终端编码 | `UTF-8` |
+| 编码 | `UTF-8` |
 | 进程类型 | 普通进程 |
 
-保存后进入实例控制台，点击启动。日志最后出现下面这行，就说明世界已经加载完成：
+启动后看到：
 
 ```text
 Done (...)! For help, type "help"
 ```
 
-{% note success 为什么使用 stop %}
-`stop` 会先保存玩家与区块数据，再让 Java 进程退出。更新、重启和关机都应从 MCSManager 控制台正常停止，不要直接结束进程。
-{% endnote %}
+世界就加载完了。
 
-MCSManager 的安装与 Java 版实例说明可参考 [Quick start](https://docs.mcsmanager.com/) 和 [Setup Java Edition Server](https://docs.mcsmanager.com/setup_java_edition.html)。
+我比较在意停止命令。更新或者重启时，用 `stop` 让服务端先保存玩家和区块，再结束 Java；不要把“结束进程”当成关服按钮。偶尔一次可能看不出问题，等哪天刚好撞上区块写入就不一定了。
 
-## 配置一套适合小服的规则
+MCSManager 还负责控制台、文件管理和计划任务，但它不是备份。面板能把服务器重新拉起来，不代表损坏的世界也会自己恢复。
 
-`server.properties` 很长，但日常真正需要决定的项目并不多：
+## `server.properties` 我改了什么
+
+完整配置很多，这台服真正改动的主要是下面这些：
 
 ```properties
 difficulty=normal
@@ -151,117 +159,77 @@ spawn-protection=0
 white-list=true
 enforce-whitelist=true
 enable-rcon=false
-```
-
-- `server-ip` 留空，让服务端自动监听可用网卡。
-- `view-distance` 决定发送给客户端的区块范围，`simulation-distance` 决定实际进行 Tick 的范围。两者从 8 开始比较稳妥。
-- `pause-when-empty-seconds=60` 会在无人在线时暂停世界 Tick，适合不是全天候有人挂机的朋友服。
-- `spawn-protection=0` 把保护工作交给领地模组，避免两套规则叠加。
-- `allow-flight=true` 可以减少移动模组、延迟或加载卡顿造成的误踢。
-- MCSManager 已经能操作控制台，因此关闭 RCON，少维护一个入口。
-
-正版账号联机时使用：
-
-```properties
 online-mode=true
 ```
 
-仅在明确了解离线模式风险、并且服务器只用于受控网络时，才考虑 `online-mode=false`；无论哪种模式，朋友服都建议启用白名单。
+`server-ip` 留空，没必要把服务端绑死在某张网卡上。视距和模拟距离都从 8 开始，实际玩过以后再调，不在开服第一天追求远景。
 
-添加玩家：
+`spawn-protection=0` 是因为保护交给领地模组，避免出生点保护和领地规则叠在一起。`allow-flight=true` 则是为了少一点延迟或移动模组造成的误踢。
+
+管理已经通过 MCSManager 控制台完成，所以 RCON 关掉。能少开一个入口，就少维护一个密码和端口。
+
+服务器只给认识的人玩，白名单还是打开了：
 
 ```text
 whitelist add <玩家名>
+whitelist remove <玩家名>
 whitelist reload
 ```
 
-## 模组怎么选
+局域网小服也没有必要为了省一步登录验证就关闭正版验证。`online-mode=false` 会把身份校验问题留给服务器自己处理，除非很清楚相应风险，否则不要动它。
 
-我没有把所有“看起来不错”的模组都塞进去，而是按问题来选择：死亡太挫败、物品太难查、基地需要保护、客户端需要更流畅、管理员需要知道服务器为什么卡。
+## 模组：先问“它解决什么”
 
-{% tabs mod-groups, 1 %}
-<!-- tab 生存体验 -->
+刚开始整理模组时，很容易看到一个就想加一个。我的删选方式后来变得简单：如果说不出它在这台服里解决了什么问题，就先不装。
 
-**Gravestone + Death Backup**
+### 死亡和日常操作
 
-死亡后由 Gravestone 保存掉落物，玩家可以回到死亡地点取回；Death Backup 再保留一份管理员可恢复的数据。前者改善体验，后者处理墓碑异常，两层保护各司其职。
+**Gravestone** 把死亡掉落收进墓碑，回到死亡地点还能拿回来。**Death Backup** 再给管理员留一份恢复手段。两者看起来功能重复，其实一个面向玩家，一个用来处理墓碑异常。
 
-**Carry On**
+**Carry On** 用来搬箱子和部分实体，整理基地省事很多；**Tax Free Levels** 去掉铁砧“过于昂贵”的硬上限，但经验消耗还在，没有直接把附魔改成免费。
 
-可以搬运箱子和部分实体，整理基地非常方便。它会改变交互规则，所以服务端和客户端需要保持版本一致。
+这几项都动到了游戏规则或交互，客户端和服务端的版本要保持一致。
 
-**Tax Free Levels**
+### 地图、领地和权限
 
-移除铁砧“过于昂贵”的硬限制，但仍保留经验消耗。相比完全免费的附魔，它更接近原版节奏。
+地图用了 **Xaero's Minimap** 和 **Xaero's World Map**。二者界面统一，小地图标点也能自然接到世界地图，没必要再混用另一套地图模组。
 
-<!-- endtab -->
-<!-- tab 地图与领地 -->
+领地是 **Open Parties and Claims**。直接在地图上圈区块，比让每个人记一串命令直观。权限再交给 **LuckPerms**，管理员需要什么就给什么，不把所有人都设成永久 OP。
 
-**Xaero's Minimap + Xaero's World Map**
+小服最容易伤感情的通常不是打不过怪，而是谁顺手开错了箱子、拆错了一面墙。领地模组不浪漫，但很有用。
 
-小地图负责即时定位，世界地图负责探索记录。二者界面一致、数据互通，很适合长期生存。
+### 查配方和看信息
 
-**Open Parties and Claims**
+物品查询选 **JEI**，中文搜索再配 **JECharacters**。我没有同时装 JEI 和 REI，因为两套覆盖层、快捷键和搜索框放在一起，只会让界面更乱。
 
-直接在地图上认领区块，保护箱子、建筑和动物；队伍成员还可以共享位置。它比只靠出生点保护更直观。
+**Jade** 显示准星所指方块或实体的信息，**AppleSkin** 补充饥饿与饱和度预览。**Inventory Profiles Next** 负责背包整理和补货，它还需要 `libIPN`。
 
-**LuckPerms**
+这些模组大多是在减少查 Wiki、翻箱子和手动整理的时间，不改变生存主线，所以留下来了。
 
-为领地管理和管理员命令提供细粒度权限。日常权限交给用户组，不需要把所有管理者都设成永久 OP。
+### 性能模组
 
-<!-- endtab -->
-<!-- tab 信息与操作 -->
+服务端放了 **FerriteCore、Lithium、ModernFix**，分别处理内存、游戏逻辑与加载方面的开销。它们能让资源使用好看一点，但不会拯救失控的强加载区块或离谱的视距。
 
-**JEI + JECharacters**
+客户端则使用 **Sodium、ImmediatelyFast、Dynamic FPS、Iris**。渲染优化和光影属于客户端体验，不需要因为名字里有“性能”就全部塞进服务端。
 
-JEI 用来查看物品与配方，JECharacters 增加中文拼音搜索。这里选择 JEI 而不是同时启用 JEI 与 REI，避免覆盖层和快捷键重复。
+另外装了 **spark**。真正卡顿时，我宁愿先跑一次采样，看看到底是谁吃掉 Tick，也不想凭模组名字猜凶手。
 
-**Jade + AppleSkin**
-
-Jade 显示准星所指方块或实体的信息，AppleSkin 补充饥饿值和饱和度预览。它们提供信息，但不改变生存玩法。
-
-**Inventory Profiles Next**
-
-提供背包整理、连续移动和补货功能，依赖 `libIPN`。
-
-<!-- endtab -->
-<!-- tab 性能与诊断 -->
-
-**服务端：FerriteCore、Lithium、ModernFix**
-
-分别从内存、游戏逻辑和加载流程减少开销。它们不会替代合理的视距与模组数量，但能让小型服务器的资源使用更平稳。
-
-**客户端：Sodium、ImmediatelyFast、Dynamic FPS、Iris**
-
-前三者负责渲染效率和后台降载，Iris 提供光影支持。它们属于客户端体验，不需要复制到服务端。
-
-**spark**
-
-当服务器卡顿时记录 Tick、CPU 与调用栈。先采样再调整，比凭感觉删模组可靠得多。
-
-<!-- endtab -->
-{% endtabs %}
-
-### 依赖模组
-
-Architectury API、Cloth Config、Collective、Kotlin for Forge、Searchables 等属于依赖库。它们本身不一定出现明显功能，但被其他模组需要，不能只因为“游戏里看不到”就删除。
-
-{% note warning 模组放哪一端？ %}
-渲染、光影、HUD、按键整理通常只放客户端；领地、权限、死亡数据和世界规则必须放服务端；会增加方块、实体或网络数据的模组通常需要双端安装。最可靠的判断依据仍然是模组作者说明与启动日志。
+{% note warning 别凭感觉判断安装端 %}
+HUD、光影和按键功能通常只在客户端；领地、权限和世界规则必须在服务端；增加方块、实体或网络数据的模组通常需要双端。最终仍以模组作者的说明和启动日志为准。
 {% endnote %}
 
-## 几项关键模组配置
+Architectury API、Cloth Config、Collective、Kotlin for Forge、Searchables 这类依赖库，进游戏后可能完全看不到。看不到不代表没用，删之前先看是谁依赖它。
 
-### 领地与权限
+## 几个我改过的模组配置
 
-Open Parties and Claims 使用 LuckPerms，并采用自带的队伍系统：
+Open Parties and Claims 接入 LuckPerms，并继续使用自己的队伍系统：
 
 ```toml
 permissionSystem = "luck_perms"
 primaryPartySystem = "default"
 ```
 
-小服可以从每人 50 个认领区块、5 个强加载区块开始：
+普通认领先给 50 个区块，强加载只给 5 个：
 
 ```toml
 maxPlayerClaims = 50
@@ -270,11 +238,9 @@ allowTouchingClaims = false
 claimsSynchronization = "ALL"
 ```
 
-强加载区块会在无人附近时继续运行，农场和机器太多会持续消耗 Tick，因此数量应明显少于普通领地。
+强加载区块在附近没人时也会继续运行。农场多起来以后，这个数字比普通领地数量更值得克制。
 
-### 墓碑与铁砧
-
-墓碑只允许主人破坏，并在破坏后拾取物品：
+墓碑只让主人破坏，打碎后直接拾取：
 
 ```toml
 only_owners_can_break = true
@@ -282,7 +248,7 @@ break_pickup = true
 sneak_pickup = false
 ```
 
-Tax Free Levels 保留 30 级作为经验计算基准，同时移除铁砧上限：
+Tax Free Levels 保留等级计算，但移除铁砧上限：
 
 ```json
 {
@@ -291,35 +257,21 @@ Tax Free Levels 保留 30 级作为经验计算基准，同时移除铁砧上限
 }
 ```
 
-这些配置修改后都需要正常重启服务器。不要在实例运行时同时从面板和 SSH 编辑同一个文件。
+配置改完后正常重启。服务端运行时，不要一边在 MCSManager 文件管理器里保存，一边又通过 SSH 改同一个文件。
 
-## 配置 PCL2 客户端
+## PCL2 客户端
 
-客户端目录为：
+PCL2 里先安装 Minecraft 26.2，再安装 NeoForge 26.2.0.71，并打开版本隔离。隔离以后，这个实例拥有自己的 `mods/`、`config/` 和 `saves/`，不会和其他整合包互相污染。
 
-```text
-D:\Program Files\PortableApps\PortableApps\PCL 正式版 2.13.1.1\.minecraft\versions\26.2-NeoForge_26.2.0.71
-```
-
-在 PCL2 中完成下面几步：
-
-1. 安装 Minecraft 26.2。
-2. 安装 NeoForge 26.2.0.71。
-3. 开启版本隔离，让这个实例拥有独立的 `mods/`、`config/` 和 `saves/`。
-4. 将客户端模组复制进该版本的 `mods/`。
-5. 启动一次，在主菜单确认 NeoForge 与模组均已加载。
-
-服务器地址填写：
+服务器地址是：
 
 ```text
 192.168.1.239:25565
 ```
 
-这是局域网地址。离开同一网络后，需要先通过可信的组网方式接入局域网，而不是把面板和管理端口一起暴露到互联网。
+这是局域网地址，只在同一网络内可用。需要从外面连接时，我更倾向先用可信的组网工具回到局域网，而不是把 MCSManager 和一堆管理端口一起暴露到公网。
 
-### 客户端与服务端怎样同步
-
-建议为客户端包保留一份清单：
+给朋友发模组时，我会保留一份客户端包：
 
 ```text
 client-pack/
@@ -328,7 +280,7 @@ client-pack/
 └── manifest.txt
 ```
 
-`manifest.txt` 记录 Minecraft、NeoForge、模组文件名和 SHA-256。Windows 下可用 PowerShell 生成校验值：
+`manifest.txt` 至少写清 Minecraft、NeoForge 和 jar 文件名。想严谨一点，再记录 SHA-256：
 
 ```powershell
 Get-ChildItem .\mods\*.jar | Sort-Object Name |
@@ -336,26 +288,22 @@ Get-ChildItem .\mods\*.jar | Sort-Object Name |
   Format-Table Hash, Path
 ```
 
-以后更新时先在测试实例中替换模组，确认能启动、能进服、能打开旧存档，再把同一批文件发给玩家。
+这样有人连不上时，可以直接比较文件，而不是在群里问“你是不是都装了”。
 
-## 日常管理
+## 比调参数更重要的是备份
 
-### 常用控制台命令
+平时最常用的控制台命令其实没几个：
 
 ```text
-list                         # 在线玩家
-save-all flush               # 立即保存世界
-whitelist add <玩家名>       # 添加白名单
-whitelist remove <玩家名>    # 移除白名单
-op <玩家名>                  # 授予 OP
-deop <玩家名>                # 收回 OP
-spark profiler start         # 开始性能采样
-spark profiler stop          # 结束采样并生成报告
+list
+save-all flush
+whitelist add <玩家名>
+whitelist remove <玩家名>
+spark profiler start
+spark profiler stop
 ```
 
-### 备份
-
-一次完整备份至少应包含世界、模组、配置和玩家权限数据。最稳妥的做法是先在 MCSManager 中正常停止实例，再执行：
+更新前我会先正常停服，然后把世界、模组、配置和权限一起打包：
 
 ```bash
 cd /opt/mc-server/server
@@ -364,64 +312,34 @@ tar -czf "/opt/mc-server/backups/mc-$(date +%F-%H%M).tar.gz" \
   server.properties ops.json whitelist.json
 ```
 
-备份文件还要定期复制到另一块磁盘或另一台设备。真正更新前，先把备份恢复到一个测试目录并启动一次，确认它确实可用。
+备份只放在同一块磁盘上不太让人安心，所以还要定期复制到另一台设备。更重要的是偶尔真的恢复一次：压缩包能打开，不代表里面一定有完整世界。
 
-### 更新顺序
+更新也不赶进度。我通常先复制一个测试实例，只换一组相关组件，确认能启动、能打开旧存档、客户端能进服，再动正式目录。Java、NeoForge、几十个模组一起升级，出错以后基本只能靠运气猜。
 
-```text
-正常停服
-  → 完整备份
-  → 在测试实例更新 NeoForge 与模组
-  → 阅读完整启动日志
-  → 客户端联机测试
-  → 更新正式实例
-```
+## 出问题时先看哪里
 
-不要在同一次更新中顺手升级 Java、NeoForge 和所有模组。一次只改变一组相关组件，出问题时才容易定位和回滚。
-
-## 常见问题
-
-{% tabs troubleshooting, 1 %}
-<!-- tab 启动失败 -->
-
-先查看 MCSManager 控制台中**最早出现的错误**，再检查：
+启动失败先找日志中**最早出现的错误**：
 
 ```text
 /opt/mc-server/server/logs/latest.log
 /opt/mc-server/server/crash-reports/
 ```
 
-常见原因是 Java 版本不匹配、缺少依赖、NeoForge 版本不一致，或者把客户端专用模组放进了服务端。
+最后一大段报错经常只是前面某个依赖缺失引发的连锁反应。常见原因无非是 Java 版本不对、缺少前置、NeoForge 版本不一致，或者把客户端专用模组放进了服务端。
 
-<!-- endtab -->
-<!-- tab 无法连接 -->
+连不上时则先看提示：
 
-- `Connection refused`：服务端没有监听端口，或正在启动/重启。
-- `Connection timed out`：检查地址、主机防火墙与网络路径。
-- `Not whitelisted`：将玩家加入白名单后执行 `whitelist reload`。
-- `Mismatched mod list`：逐个比较双方 jar 文件名和版本。
+- `Connection refused`：服务端没有启动完，或者没有监听端口；
+- `Connection timed out`：检查地址、防火墙和网络路径；
+- `Not whitelisted`：把玩家加入白名单；
+- `Mismatched mod list`：直接比较双方 jar 文件与版本。
 
-<!-- endtab -->
-<!-- tab 游戏卡顿 -->
+如果是“能玩但是卡”，也先分清是哪一边。只有一个人的画面掉帧，多半看客户端渲染和光影；所有人都挖方块回弹，才去看服务端 TPS；只在探图时卡，就先降视距或考虑预生成区块。
 
-- 只有一个人的画面卡：检查客户端光影、渲染距离和 Sodium/Iris 配置。
-- 所有人挖方块回弹：检查服务端 TPS，并使用 spark 采样。
-- 只有探图时卡：降低视距，或在低峰期预生成区块。
-- 内存持续上涨：先分析模组和区块加载，不要只提高 `-Xmx`。
+## 先这样
 
-<!-- endtab -->
-{% endtabs %}
+这台服目前没有什么宏大的玩法设计，就是一套能和朋友安稳玩下去的原版增强环境。
 
-## 完成
+NeoForge 负责加载模组，MCSManager 让我不用守着终端，领地避免误伤存档，spark 在卡顿时给一点线索。剩下的模组都只是让背包、地图和死亡没那么折磨人。
 
-这套服务器没有追求“模组数量”，而是让每个组件都解决一个具体问题：NeoForge 提供模组环境，MCSManager 负责进程管理，领地和权限保护多人存档，体验模组减少重复操作，性能模组与 spark 让维护有据可查。
-
-做到下面五件事，服务器就已经具备长期运行的基础：
-
-- 固定 Minecraft、NeoForge 和模组版本；
-- 分清客户端、服务端与双端模组；
-- 用 `stop` 正常关闭实例；
-- 更新前备份并在测试实例验证；
-- 卡顿时先看日志和性能报告。
-
-剩下的，就是进服造房子了。
+以后大概还会继续加东西，不过下一次看到“必装神级模组”时，我会先问一句：它到底解决了什么？
