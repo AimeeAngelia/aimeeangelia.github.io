@@ -133,7 +133,7 @@ welcome:
   text: 别急着离开，这场演出还没有结束。
   cta_text: 与我合奏？你确定？
   cta_link: archives/
-  image: /images/phrolova-welcome.png
+  image: /images/d30b398a00af4dc36b73f7f3ab0c77de.png
 
 # 首页开屏大图。默认关闭，不影响已有站点；仅在首页第一页渲染。
 # 开启后默认复用 profile 的头像、简介、社交链接与 RSS，也可以在这里覆盖。
