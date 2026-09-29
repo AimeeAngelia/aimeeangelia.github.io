@@ -1,0 +1,4 @@
+interface:
+  display_name: "中文个人博客写作"
+  short_description: "为中文个人博客起草、改写并审校自然具体且保留作者判断的文章"
+  default_prompt: "使用 $zh-personal-blog 根据我的真实材料起草一篇中文个人博客文章。"
